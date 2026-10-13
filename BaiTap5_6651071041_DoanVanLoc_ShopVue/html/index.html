@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Tech Gear - shop phụ kiện điện thoại: ốp lưng, tai nghe, sạc, cáp với giỏ hàng cập nhật tức thời bằng Vue 3.">
+  <meta name="author" content="MSSV - Họ Tên">
+  <title>Tech Gear | Phụ kiện điện thoại</title>
+  <!-- CSS Framework hỗ trợ: Tailwind Play CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="../css/style.css">
+  <!-- Vue 3 CDN: PHẢI nạp TRƯỚC app.js để app.js gọi được Vue.createApp -->
+  <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+</head>
+
+<body class="bg-slate-50 text-slate-800">
+
+  <!-- Toàn bộ vùng có dữ liệu động được bọc trong #app (kể cả header vì có số lượng giỏ hàng) -->
+  <div id="app" v-cloak>
+
+    <!-- ================= HEADER + NAVIGATION ================= -->
+    <header class="sticky top-0 z-50 bg-white shadow">
+      <nav class="max-w-6xl mx-auto flex flex-wrap items-center justify-between gap-3 px-4 py-3">
+        <a href="#trang-chu" class="text-xl font-extrabold text-blue-600">⚡ TECH GEAR</a>
+
+        <ul class="hidden md:flex gap-6 text-sm font-semibold">
+          <li><a href="#trang-chu" class="hover:text-blue-600">Trang chủ</a></li>
+          <li><a href="#san-pham" class="hover:text-blue-600">Sản phẩm</a></li>
+          <li><a href="#khuyen-mai" class="hover:text-blue-600">Khuyến mãi</a></li>
+          <li><a href="#lien-he" class="hover:text-blue-600">Liên hệ</a></li>
+        </ul>
+
+        <!-- Số lượng giỏ hàng do Vue quản lý bằng {{ }} -->
+        <a href="#gio-hang" class="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-full text-sm font-semibold transition">
+          🛒 Giỏ hàng ({{ cartCount }})
+        </a>
+      </nav>
+    </header>
+
+    <!-- ================= TRANG CHỦ / TÌM KIẾM ================= -->
+    <section id="trang-chu" class="max-w-6xl mx-auto px-4 pt-8">
+      <h1 class="text-3xl md:text-4xl font-extrabold">Phụ kiện điện thoại chính hãng</h1>
+      <p class="mt-2 text-slate-600">Ốp lưng, tai nghe, sạc, cáp. Thêm vào giỏ và xem tổng tiền ngay.</p>
+
+      <!-- Ô tìm kiếm: v-model liên kết 2 chiều với biến tuKhoa -->
+      <div class="mt-5">
+        <label for="search" class="sr-only">Tìm sản phẩm</label>
+        <input id="search" type="search" v-model="tuKhoa" placeholder="Tìm sản phẩm, ví dụ: tai nghe, sạc..."
+          class="w-full md:w-96 px-4 py-2 rounded-full border border-slate-300 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+      </div>
+    </section>
+
+    <!-- ================= KHUNG CHÍNH: SẢN PHẨM + ASIDE GIỎ HÀNG ================= -->
+    <div class="max-w-6xl mx-auto px-4 py-8 grid grid-cols-1 lg:grid-cols-3 gap-8">
+
+      <!-- SECTION sản phẩm -->
+      <section id="san-pham" class="lg:col-span-2 scroll-mt-24">
+        <h2 class="text-2xl font-bold mb-4">Sản phẩm <span class="text-sm font-normal text-slate-500">({{ danhSachLoc.length }} kết quả)</span></h2>
+
+        <!-- Không có kết quả tìm kiếm -->
+        <p v-if="danhSachLoc.length === 0" class="p-6 bg-white rounded-xl text-slate-500">
+          Không tìm thấy sản phẩm nào cho "{{ tuKhoa }}". Hãy thử từ khoá khác.
+        </p>
+
+        <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
+          <!-- v-for: Vue tự lặp để render mỗi sản phẩm thành 1 ARTICLE -->
+          <article v-for="sp in danhSachLoc" :key="sp.id"
+                   class="bg-white rounded-2xl shadow hover:shadow-lg transition overflow-hidden flex flex-col">
+            <img :src="sp.anh" :alt="sp.ten" class="w-full aspect-square object-cover">
+            <div class="p-3 flex flex-col flex-1">
+              <h3 class="font-bold text-sm">{{ sp.ten }}</h3>
+              <p class="text-xs text-slate-500 mt-1 flex-1">{{ sp.moTa }}</p>
+              <div class="mt-3 flex items-center justify-between">
+                <span class="font-bold text-blue-600 text-sm">{{ formatGia(sp.gia) }}</span>
+                <!-- @click gọi method themVaoGio(sanPham) -->
+                <button @click="themVaoGio(sp)" aria-label="Thêm vào giỏ"
+                        class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold px-3 py-2 rounded-lg transition">
+                  Thêm vào giỏ
+                </button>
+              </div>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <!-- ASIDE: Giỏ hàng của bạn -->
+      <aside id="gio-hang" class="lg:col-span-1 scroll-mt-24">
+        <div class="bg-white rounded-2xl shadow p-5 lg:sticky lg:top-24">
+          <h2 class="text-xl font-extrabold">YOUR CART</h2>
+          <p class="text-sm text-slate-500 mb-4">Giỏ hàng của bạn</p>
+
+          <!-- v-if: hiện khi giỏ trống -->
+          <p v-if="cart.length === 0" class="py-6 text-center text-slate-500">Giỏ hàng trống</p>
+
+          <!-- v-else: liệt kê từng sản phẩm đã thêm -->
+          <ul v-else class="space-y-3">
+            <li v-for="(item, index) in cart" :key="index" class="flex items-center gap-3">
+              <img :src="item.anh" :alt="item.ten" class="w-12 h-12 rounded-lg object-cover">
+              <div class="flex-1 min-w-0">
+                <p class="text-sm font-semibold truncate">{{ item.ten }}</p>
+                <p class="text-xs text-slate-500">{{ formatGia(item.gia) }}</p>
+              </div>
+              <!-- @click gọi xoaKhoiGio(index) -->
+              <button @click="xoaKhoiGio(index)" aria-label="Xoá khỏi giỏ"
+                      class="w-7 h-7 rounded-full bg-red-500 hover:bg-red-600 text-white text-sm leading-none transition">✕</button>
+            </li>
+          </ul>
+
+          <div class="mt-5 pt-4 border-t border-slate-200 flex justify-between font-bold">
+            <span>TỔNG</span>
+            <span class="text-blue-600">{{ formatGia(tongTien) }}</span>
+          </div>
+
+          <button @click="thanhToan" :disabled="cart.length === 0"
+                  class="mt-4 w-full bg-gradient-to-r from-blue-500 to-indigo-500 text-white font-semibold py-3 rounded-xl transition hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed">
+            Thanh toán
+          </button>
+        </div>
+      </aside>
+    </div>
+
+    <!-- ================= KHUYẾN MÃI (tĩnh) ================= -->
+    <section id="khuyen-mai" class="scroll-mt-24 max-w-6xl mx-auto px-4 pb-10">
+      <h2 class="text-2xl font-bold mb-4">Khuyến mãi hôm nay</h2>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="rounded-2xl p-6 text-white bg-gradient-to-r from-blue-500 to-purple-500">
+          <p class="text-2xl font-extrabold">Giảm 20% tất cả ốp lưng</p>
+          <p class="mt-1 text-blue-100">Áp dụng đến hết tuần này, số lượng có hạn.</p>
+        </div>
+        <div class="rounded-2xl p-6 text-white bg-gradient-to-r from-emerald-500 to-teal-500">
+          <p class="text-2xl font-extrabold">Miễn phí vận chuyển từ 500.000đ</p>
+          <p class="mt-1 text-emerald-100">Giao nhanh nội thành TP.HCM trong 2 giờ.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= FOOTER ================= -->
+    <footer id="lien-he" class="bg-neutral-900 text-neutral-300 px-4 py-10">
+      <div class="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8 text-sm">
+        <div>
+          <h4 class="font-bold text-white mb-3">Liên hệ</h4>
+          <p>123 Đường Công Nghệ, TP. Hồ Chí Minh<br>Hotline: 0901 234 567<br>support@techgear.vn</p>
+        </div>
+        <div>
+          <h4 class="font-bold text-white mb-3">Hỗ trợ</h4>
+          <ul class="space-y-1">
+            <li><a href="#" class="hover:text-white">Chính sách bảo hành</a></li>
+            <li><a href="#" class="hover:text-white">Vận chuyển</a></li>
+            <li><a href="#" class="hover:text-white">Câu hỏi thường gặp</a></li>
+          </ul>
+        </div>
+        <div>
+          <h4 class="font-bold text-white mb-3">Mạng xã hội</h4>
+          <ul class="space-y-1">
+            <li><a href="#" class="hover:text-white">Facebook</a></li>
+            <li><a href="#" class="hover:text-white">YouTube</a></li>
+            <li><a href="#" class="hover:text-white">Instagram</a></li>
+          </ul>
+        </div>
+      </div>
+      <p class="text-center text-xs text-neutral-500 mt-8">&copy; 2026 Tech Gear. Bảo lưu mọi quyền.</p>
+    </footer>
+
+  </div>
+
+  <!-- app.js nạp SAU Vue CDN và SAU #app -->
+  <script src="../js/app.js"></script>
+</body>
+</html>

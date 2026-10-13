@@ -1,0 +1,13 @@
+/* CSS bổ sung (Tailwind là framework chính) */
+
+/* Ẩn template {{ }} chưa biên dịch cho tới khi Vue mount xong (tránh nhấp nháy) */
+[v-cloak] { display: none; }
+
+html { scroll-behavior: smooth; }
+
+/* Hiệu ứng nhỏ khi bấm nút thêm vào giỏ */
+article button:active { transform: scale(0.95); }
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+}

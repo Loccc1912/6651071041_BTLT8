@@ -1,0 +1,30 @@
+/* CSS bổ sung cho phần Tailwind chưa hỗ trợ sẵn */
+
+/* 1. Cuộn mượt khi bấm link neo (#menu, #order...) */
+html { scroll-behavior: smooth; }
+
+/* 2. Animation tuỳ biến: bánh trong menu hiện dần khi trang tải */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+#menu article { animation: fadeUp 0.6s ease both; }
+#menu article:nth-child(2) { animation-delay: 0.08s; }
+#menu article:nth-child(3) { animation-delay: 0.16s; }
+#menu article:nth-child(4) { animation-delay: 0.24s; }
+#menu article:nth-child(5) { animation-delay: 0.32s; }
+#menu article:nth-child(6) { animation-delay: 0.40s; }
+
+/* 3. Gạch chân động cho link menu desktop (Tailwind không có sẵn kiểu này) */
+.nav-link { position: relative; }
+.nav-link::after {
+  content: ""; position: absolute; left: 0; bottom: -4px;
+  width: 0; height: 2px; background: #d97706; transition: width 0.25s ease;
+}
+.nav-link:hover::after { width: 100%; }
+
+/* Tôn trọng người dùng tắt hiệu ứng chuyển động */
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  #menu article { animation: none; }
+}
